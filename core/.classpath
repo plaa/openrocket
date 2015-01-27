@@ -25,5 +25,6 @@
 	<classpathentry kind="lib" path="/OpenRocket Test Libraries/junit-dep-4.8.2.jar"/>
 	<classpathentry kind="lib" path="/OpenRocket Test Libraries/test-plugin.jar"/>
 	<classpathentry kind="lib" path="/OpenRocket Test Libraries/uispec4j-2.3-jdk16.jar"/>
+	<classpathentry kind="lib" path="lib/guice-assistedinject-3.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -51,9 +51,6 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.miginfocom.swing.MigLayout;
 import net.sf.openrocket.document.OpenRocketDocument;
 import net.sf.openrocket.document.Simulation;
@@ -98,6 +95,11 @@ import net.sf.openrocket.util.Chars;
 import net.sf.openrocket.util.Named;
 import net.sf.openrocket.util.TextUtil;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import com.itextpdf.text.Font;
 
 /**
@@ -190,13 +192,8 @@ public class GeneralOptimizationDialog extends JDialog {
 	
 	private boolean updating = false;
 	
-	/**
-	 * Sole constructor.
-	 * 
-	 * @param document  the document
-	 * @param parent    the parent window
-	 */
-	public GeneralOptimizationDialog(OpenRocketDocument document, Window parent) {
+	@Inject
+	public GeneralOptimizationDialog(@Assisted OpenRocketDocument document, @Assisted Window parent) {
 		super(parent, trans.get("title"));
 		
 		this.baseDocument = document;

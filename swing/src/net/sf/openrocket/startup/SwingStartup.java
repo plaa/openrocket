@@ -17,7 +17,7 @@ import net.sf.openrocket.communication.UpdateInfo;
 import net.sf.openrocket.communication.UpdateInfoRetriever;
 import net.sf.openrocket.database.Databases;
 import net.sf.openrocket.gui.dialogs.UpdateInfoDialog;
-import net.sf.openrocket.gui.main.BasicFrame;
+import net.sf.openrocket.gui.main.BasicFrameHelper;
 import net.sf.openrocket.gui.main.MRUDesignFile;
 import net.sf.openrocket.gui.main.Splash;
 import net.sf.openrocket.gui.main.SwingExceptionHandler;
@@ -51,7 +51,7 @@ public class SwingStartup {
 		
 		// Check for "openrocket.debug" property before anything else
 		checkDebugStatus();
-
+		
 		if (System.getProperty("openrocket.debug.layout") != null) {
 			LayoutUtil.setGlobalDebugMillis(100);
 		}
@@ -170,22 +170,23 @@ public class SwingStartup {
 		
 		// Starting action (load files or open new document)
 		log.info("Opening main application window");
-		if (!handleCommandLine(args)) {
+		BasicFrameHelper helper = injector.getInstance(BasicFrameHelper.class);
+		if (!handleCommandLine(args, helper)) {
 			if (!Application.getPreferences().isAutoOpenLastDesignOnStartupEnabled()) {
-				BasicFrame.newAction();
+				helper.newFrame();
 			} else {
 				String lastFile = MRUDesignFile.getInstance().getLastEditedDesignFile();
 				if (lastFile != null) {
-					if (!BasicFrame.open(new File(lastFile), null)) {
+					if (!helper.open(new File(lastFile), null)) {
 						MRUDesignFile.getInstance().removeFile(lastFile);
-						BasicFrame.newAction();
+						helper.newFrame();
 					}
 					else {
 						MRUDesignFile.getInstance().addFile(lastFile);
 					}
 				}
 				else {
-					BasicFrame.newAction();
+					helper.newFrame();
 				}
 			}
 		}
@@ -195,6 +196,7 @@ public class SwingStartup {
 		checkUpdateStatus(updateInfo);
 		
 	}
+	
 	
 	/**
 	 * Check that the JRE is not running headless.
@@ -266,12 +268,12 @@ public class SwingStartup {
 	 * @return		whether a new frame was opened or similar user desired action was
 	 * 				performed as a result.
 	 */
-	private boolean handleCommandLine(String[] args) {
+	private boolean handleCommandLine(String[] args, BasicFrameHelper helper) {
 		
 		// Check command-line for files
 		boolean opened = false;
 		for (String file : args) {
-			if (BasicFrame.open(new File(file), null)) {
+			if (helper.open(new File(file), null)) {
 				opened = true;
 			}
 		}

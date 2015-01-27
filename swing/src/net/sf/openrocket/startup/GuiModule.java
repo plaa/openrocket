@@ -10,6 +10,10 @@ import net.sf.openrocket.formatting.RocketDescriptorImpl;
 import net.sf.openrocket.gui.util.SwingPreferences;
 import net.sf.openrocket.gui.watcher.WatchService;
 import net.sf.openrocket.gui.watcher.WatchServiceImpl;
+import net.sf.openrocket.guice.BasicFrameFactory;
+import net.sf.openrocket.guice.ExampleDesignFileMenuFactory;
+import net.sf.openrocket.guice.GeneralOptimizationDialogFactory;
+import net.sf.openrocket.guice.MRUDesignFileMenuFactory;
 import net.sf.openrocket.l10n.Translator;
 import net.sf.openrocket.startup.providers.BlockingComponentPresetDatabaseProvider;
 import net.sf.openrocket.startup.providers.BlockingMotorDatabaseProvider;
@@ -17,6 +21,7 @@ import net.sf.openrocket.startup.providers.TranslatorProvider;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 /**
  * GuiModule is the Guice Module for the OpenRocket Swing application.
@@ -56,6 +61,12 @@ public class GuiModule extends AbstractModule {
 		BlockingMotorDatabaseProvider motorDatabaseProvider = new BlockingMotorDatabaseProvider(motorLoader);
 		bind(ThrustCurveMotorSetDatabase.class).toProvider(motorDatabaseProvider).in(Scopes.SINGLETON);
 		bind(MotorDatabase.class).toProvider(motorDatabaseProvider).in(Scopes.SINGLETON);
+		
+		// GUI frame / dialog assisted injection factories
+		install(new FactoryModuleBuilder().build(BasicFrameFactory.class));
+		install(new FactoryModuleBuilder().build(GeneralOptimizationDialogFactory.class));
+		install(new FactoryModuleBuilder().build(MRUDesignFileMenuFactory.class));
+		install(new FactoryModuleBuilder().build(ExampleDesignFileMenuFactory.class));
 		
 	}
 	
