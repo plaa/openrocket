@@ -4,12 +4,14 @@ import java.util.Collection;
 
 import net.sf.openrocket.document.OpenRocketDocument;
 import net.sf.openrocket.optimization.rocketoptimization.SimulationModifier;
+import net.sf.openrocket.plugin.Plugin;
 
 /**
  * A service for generating simulation modifiers.
  * 
  * @author Sampo Niskanen <sampo.niskanen@iki.fi>
  */
+@Plugin
 public interface SimulationModifierService {
 	
 	/**
@@ -20,5 +22,5 @@ public interface SimulationModifierService {
 	 */
 	public Collection<SimulationModifier> getModifiers(OpenRocketDocument document);
 	
-
+	
 }

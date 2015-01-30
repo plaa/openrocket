@@ -4,12 +4,17 @@ import java.util.Collection;
 
 import net.sf.openrocket.document.OpenRocketDocument;
 import net.sf.openrocket.optimization.rocketoptimization.OptimizableParameter;
+import net.sf.openrocket.plugin.Plugin;
 
 /**
- * A service for generating rocket optimization parameters.
+ * A plugin service for generating rocket optimization parameters.
+ * <p>
+ * An optimization parameter is a goal value for optimization,
+ * for example maximum velocity.
  * 
  * @author Sampo Niskanen <sampo.niskanen@iki.fi>
  */
+@Plugin
 public interface OptimizableParameterService {
 	
 	/**
@@ -21,5 +26,5 @@ public interface OptimizableParameterService {
 	 */
 	public Collection<OptimizableParameter> getParameters(OpenRocketDocument document);
 	
-
+	
 }

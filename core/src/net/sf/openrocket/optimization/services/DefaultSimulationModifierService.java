@@ -14,6 +14,7 @@ import net.sf.openrocket.optimization.general.OptimizationException;
 import net.sf.openrocket.optimization.rocketoptimization.SimulationModifier;
 import net.sf.openrocket.optimization.rocketoptimization.modifiers.FlightConfigurationModifier;
 import net.sf.openrocket.optimization.rocketoptimization.modifiers.GenericComponentModifier;
+import net.sf.openrocket.plugin.Plugin;
 import net.sf.openrocket.rocketcomponent.BodyTube;
 import net.sf.openrocket.rocketcomponent.DeploymentConfiguration;
 import net.sf.openrocket.rocketcomponent.DeploymentConfiguration.DeployEvent;
@@ -39,6 +40,7 @@ import net.sf.openrocket.util.BugException;
 import net.sf.openrocket.util.Reflection;
 import net.sf.openrocket.util.Reflection.Method;
 
+@Plugin
 public class DefaultSimulationModifierService implements SimulationModifierService {
 	
 	private static final Translator trans = Application.getTranslator();

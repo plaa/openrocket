@@ -14,12 +14,14 @@ import net.sf.openrocket.optimization.rocketoptimization.parameters.MaximumAltit
 import net.sf.openrocket.optimization.rocketoptimization.parameters.MaximumVelocityParameter;
 import net.sf.openrocket.optimization.rocketoptimization.parameters.StabilityParameter;
 import net.sf.openrocket.optimization.rocketoptimization.parameters.TotalFlightTimeParameter;
+import net.sf.openrocket.plugin.Plugin;
 
 /**
  * Default implementation for optimization parameter service.
  * 
  * @author Sampo Niskanen <sampo.niskanen@iki.fi>
  */
+@Plugin
 public class DefaultOptimizableParameterService implements OptimizableParameterService {
 	
 	@Override

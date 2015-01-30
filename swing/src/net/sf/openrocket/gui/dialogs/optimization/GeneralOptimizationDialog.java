@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -82,7 +83,8 @@ import net.sf.openrocket.optimization.rocketoptimization.domains.StabilityDomain
 import net.sf.openrocket.optimization.rocketoptimization.goals.MaximizationGoal;
 import net.sf.openrocket.optimization.rocketoptimization.goals.MinimizationGoal;
 import net.sf.openrocket.optimization.rocketoptimization.goals.ValueSeekGoal;
-import net.sf.openrocket.optimization.services.OptimizationServiceHelper;
+import net.sf.openrocket.optimization.services.OptimizableParameterService;
+import net.sf.openrocket.optimization.services.SimulationModifierService;
 import net.sf.openrocket.rocketcomponent.Rocket;
 import net.sf.openrocket.rocketcomponent.RocketComponent;
 import net.sf.openrocket.startup.Application;
@@ -193,14 +195,16 @@ public class GeneralOptimizationDialog extends JDialog {
 	private boolean updating = false;
 	
 	@Inject
-	public GeneralOptimizationDialog(@Assisted OpenRocketDocument document, @Assisted Window parent) {
+	public GeneralOptimizationDialog(@Assisted OpenRocketDocument document, @Assisted Window parent,
+			final Set<OptimizableParameterService> optimizableParameterServices,
+			final Set<SimulationModifierService> simulationModifierServices) {
 		super(parent, trans.get("title"));
 		
 		this.baseDocument = document;
 		this.documentCopy = document.copy();
 		
-		loadOptimizationParameters();
-		loadSimulationModifiers();
+		loadOptimizationParameters(optimizableParameterServices);
+		loadSimulationModifiers(simulationModifierServices);
 		
 		JPanel sub;
 		JLabel label;
@@ -615,7 +619,7 @@ public class GeneralOptimizationDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				log.info(Markers.USER_MARKER, "Resetting optimization design");
-				resetDesign();
+				resetDesign(optimizableParameterServices, simulationModifierServices);
 			}
 		});
 		disableComponents.add(resetButton);
@@ -899,13 +903,14 @@ public class GeneralOptimizationDialog extends JDialog {
 		}
 	}
 	
-	private void resetDesign() {
+	private void resetDesign(Set<OptimizableParameterService> optimizableParameterServices,
+			Set<SimulationModifierService> simulationModifierServices) {
 		clearHistory();
 		
 		documentCopy = baseDocument.copy();
 		
-		loadOptimizationParameters();
-		loadSimulationModifiers();
+		loadOptimizationParameters(optimizableParameterServices);
+		loadSimulationModifiers(simulationModifierServices);
 		
 		// Replace selected modifiers with corresponding new modifiers
 		List<SimulationModifier> newSelected = new ArrayList<SimulationModifier>();
@@ -1013,10 +1018,11 @@ public class GeneralOptimizationDialog extends JDialog {
 		stepSizeLabel.setText(UnitGroup.UNITS_RELATIVE.toStringUnit(stepSize));
 	}
 	
-	private void loadOptimizationParameters() {
+	private void loadOptimizationParameters(Set<OptimizableParameterService> optimizableParameterServices) {
 		optimizationParameters.clear();
-		optimizationParameters.addAll(OptimizationServiceHelper.getOptimizableParameters(documentCopy));
-		
+		for (OptimizableParameterService service : optimizableParameterServices) {
+			optimizationParameters.addAll(service.getParameters(documentCopy));
+		}
 		if (optimizationParameters.isEmpty()) {
 			throw new BugException("No rocket optimization parameters found, distribution built wrong.");
 		}
@@ -1029,10 +1035,16 @@ public class GeneralOptimizationDialog extends JDialog {
 		});
 	}
 	
-	private void loadSimulationModifiers() {
+	private void loadSimulationModifiers(Set<SimulationModifierService> simulationModifierServices) {
 		simulationModifiers.clear();
 		
-		for (SimulationModifier m : OptimizationServiceHelper.getSimulationModifiers(documentCopy)) {
+		List<SimulationModifier> modifiers = new ArrayList<>();
+		for (SimulationModifierService service : simulationModifierServices) {
+			modifiers.addAll(service.getModifiers(documentCopy));
+		}
+		
+		// Store modifiers based on the related objects
+		for (SimulationModifier m : modifiers) {
 			Object key = m.getRelatedObject();
 			List<SimulationModifier> list = simulationModifiers.get(key);
 			if (list == null) {
