@@ -40,6 +40,7 @@ import net.sf.openrocket.util.BuildProperties;
 import net.sf.openrocket.util.Named;
 import net.sf.openrocket.util.Utils;
 
+@SuppressWarnings("serial")
 public class GeneralPreferencesPanel extends PreferencesPanel {
 
 	public GeneralPreferencesPanel(JDialog parent) {
@@ -208,6 +209,30 @@ public class GeneralPreferencesPanel extends PreferencesPanel {
 			}
 		});
 		this.add(button, "right, wrap");
+		
+		//// Open most recent file on startup
+		final JCheckBox openRecentOnStartupBox = new JCheckBox(trans.get("pref.dlg.but.openlast"));
+		openRecentOnStartupBox.setSelected(preferences.isAutoOpenLastDesignOnStartupEnabled());
+		openRecentOnStartupBox.addActionListener( new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				preferences.setAutoOpenLastDesignOnStartup(openRecentOnStartupBox.isSelected());
+			}
+		});
+		this.add(openRecentOnStartupBox,"spanx, wrap");
+		
+		//// Save RockSim Format warning dialog
+		final JCheckBox rocksimWarningDialogBox = new JCheckBox(trans.get("pref.dlg.lbl.RockSimWarning"));
+		rocksimWarningDialogBox.setSelected(preferences.getShowRockSimFormatWarning());
+		rocksimWarningDialogBox.addActionListener( new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				preferences.setShowRockSimFormatWarning(rocksimWarningDialogBox.isSelected());
+			}
+		});
+		this.add(rocksimWarningDialogBox,"spanx, wrap");
+		
+
 	}
 
 

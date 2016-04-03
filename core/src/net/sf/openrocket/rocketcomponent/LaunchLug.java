@@ -12,7 +12,7 @@ import net.sf.openrocket.util.MathUtil;
 
 
 
-public class LaunchLug extends ExternalComponent implements Coaxial {
+public class LaunchLug extends ExternalComponent implements Coaxial, LineInstanceable {
 	
 	private static final Translator trans = Application.getTranslator();
 	
@@ -20,12 +20,12 @@ public class LaunchLug extends ExternalComponent implements Coaxial {
 	private double thickness;
 	
 	private double radialDirection = 0;
+	protected double radialDistance = 0;
 	
-	/* These are calculated when the component is first attached to any Rocket */
-	private double shiftY, shiftZ;
+	private int instanceCount = 1;
+	private double instanceSeparation = 0; // front-front along the positive rocket axis. i.e. [1,0,0];
 	
 	
-
 	public LaunchLug() {
 		super(Position.MIDDLE);
 		radius = 0.01 / 2;
@@ -72,21 +72,18 @@ public class LaunchLug extends ExternalComponent implements Coaxial {
 		fireComponentChangeEvent(ComponentChangeEvent.BOTH_CHANGE);
 	}
 	
-	
-	public double getRadialDirection() {
-		return radialDirection;
+	public double getAngularOffset() {
+		return this.radialDirection;
 	}
-	
-	public void setRadialDirection(double direction) {
-		direction = MathUtil.reduce180(direction);
-		if (MathUtil.equals(this.radialDirection, direction))
+
+	public void setAngularOffset(final double newAngle_rad){
+		double clamped_rad = MathUtil.clamp( newAngle_rad, -Math.PI, Math.PI);
+		if (MathUtil.equals(this.radialDirection, clamped_rad))
 			return;
-		this.radialDirection = direction;
+		this.radialDirection = clamped_rad;
 		fireComponentChangeEvent(ComponentChangeEvent.BOTH_CHANGE);
 	}
 	
-	
-
 	public void setLength(double length) {
 		if (MathUtil.equals(this.length, length))
 			return;
@@ -95,9 +92,12 @@ public class LaunchLug extends ExternalComponent implements Coaxial {
 	}
 	
 	
-
-
-
+	@Override
+	public boolean isAfter() {
+		return false;
+	}
+	
+	
 	@Override
 	public void setRelativePosition(RocketComponent.Position position) {
 		super.setRelativePosition(position);
@@ -112,40 +112,56 @@ public class LaunchLug extends ExternalComponent implements Coaxial {
 	}
 	
 	
-
+	
 	@Override
 	protected void loadFromPreset(ComponentPreset preset) {
-		if ( preset.has(ComponentPreset.OUTER_DIAMETER) )  {
+		if (preset.has(ComponentPreset.OUTER_DIAMETER)) {
 			double outerDiameter = preset.get(ComponentPreset.OUTER_DIAMETER);
-			this.radius = outerDiameter/2.0;
-			if ( preset.has(ComponentPreset.INNER_DIAMETER) ) {
+			this.radius = outerDiameter / 2.0;
+			if (preset.has(ComponentPreset.INNER_DIAMETER)) {
 				double innerDiameter = preset.get(ComponentPreset.INNER_DIAMETER);
-				this.thickness = (outerDiameter-innerDiameter) / 2.0;
+				this.thickness = (outerDiameter - innerDiameter) / 2.0;
 			}
 		}
-
+		
 		super.loadFromPreset(preset);
-
+		
 		fireComponentChangeEvent(ComponentChangeEvent.BOTH_CHANGE);
 	}
-
-
+	
+	
 	@Override
 	public Type getPresetType() {
 		return ComponentPreset.Type.LAUNCH_LUG;
 	}
-
+	
 
 	@Override
-	public Coordinate[] shiftCoordinates(Coordinate[] array) {
-		array = super.shiftCoordinates(array);
+	public Coordinate[] getInstanceOffsets(){
+		Coordinate[] toReturn = new Coordinate[this.getInstanceCount()];
 		
-		for (int i = 0; i < array.length; i++) {
-			array[i] = array[i].add(0, shiftY, shiftZ);
+		final double xOffset = this.position.x;
+		final double yOffset = Math.cos(radialDirection) * (radialDistance);
+		final double zOffset = Math.sin(radialDirection) * (radialDistance);
+		
+		for ( int index=0; index < this.getInstanceCount(); index++){
+			toReturn[index] = new Coordinate(xOffset + index*this.instanceSeparation, yOffset, zOffset);
 		}
 		
-		return array;
+		return toReturn;
 	}
+	
+//	@Override
+//	protected Coordinate[] shiftCoordinates(Coordinate[] array) {
+//		array = super.shiftCoordinates(array);
+//		
+//		for (int i = 0; i < array.length; i++) {
+//			array[i] = new Coordinate(xOffset + index*this.instanceSeparation, yOffset, zOffset);
+//			array[i] = array[i].add(0, shiftY, shiftZ);
+//		}
+//		
+//		return array;
+//	}
 	
 	
 	@Override
@@ -176,15 +192,12 @@ public class LaunchLug extends ExternalComponent implements Coaxial {
 			parentRadius = Math.max(s.getRadius(x1), s.getRadius(x2));
 		}
 		
-		shiftY = Math.cos(radialDirection) * (parentRadius + radius);
-		shiftZ = Math.sin(radialDirection) * (parentRadius + radius);
-		
-		//		System.out.println("Computed shift: y="+shiftY+" z="+shiftZ);
+		this.radialDistance = parentRadius + radius;
 	}
 	
 	
-
-
+	
+	
 	@Override
 	public double getComponentVolume() {
 		return length * Math.PI * (MathUtil.pow2(radius) - MathUtil.pow2(radius - thickness));
@@ -211,8 +224,8 @@ public class LaunchLug extends ExternalComponent implements Coaxial {
 	
 	@Override
 	public double getLongitudinalUnitInertia() {
-		// 1/12 * (3 * (r1^2 + r2^2) + h^2)
-		return (3 * (MathUtil.pow2(getInnerRadius())) + MathUtil.pow2(getOuterRadius()) + MathUtil.pow2(getLength())) / 12;
+		// 1/12 * (3 * (r2^2 + r1^2) + h^2)
+		return (3 * (MathUtil.pow2(getOuterRadius()) + MathUtil.pow2(getInnerRadius())) + MathUtil.pow2(getLength())) / 12;
 	}
 	
 	@Override
@@ -232,4 +245,33 @@ public class LaunchLug extends ExternalComponent implements Coaxial {
 		return false;
 	}
 	
+
+	
+	@Override
+	public double getInstanceSeparation(){
+		return this.instanceSeparation;
+	}
+	
+	@Override
+	public void setInstanceSeparation(final double _separation){
+		this.instanceSeparation = _separation;
+	}
+	
+	@Override
+	public void setInstanceCount( final int newCount ){
+		if( 0 < newCount ){
+			this.instanceCount = newCount;
+		}
+	}
+	
+	@Override
+	public int getInstanceCount(){
+		return this.instanceCount;
+	}
+
+	@Override
+	public String getPatternName(){
+		return (this.getInstanceCount() + "-Line");
+	}
+
 }

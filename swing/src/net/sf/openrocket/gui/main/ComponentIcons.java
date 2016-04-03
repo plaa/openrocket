@@ -10,6 +10,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import net.sf.openrocket.l10n.Translator;
+import net.sf.openrocket.rocketcomponent.AxialStage;
 import net.sf.openrocket.rocketcomponent.BodyTube;
 import net.sf.openrocket.rocketcomponent.Bulkhead;
 import net.sf.openrocket.rocketcomponent.CenteringRing;
@@ -22,11 +23,15 @@ import net.sf.openrocket.rocketcomponent.MassComponent;
 import net.sf.openrocket.rocketcomponent.MassComponent.MassComponentType;
 import net.sf.openrocket.rocketcomponent.NoseCone;
 import net.sf.openrocket.rocketcomponent.Parachute;
+import net.sf.openrocket.rocketcomponent.ParallelStage;
+import net.sf.openrocket.rocketcomponent.PodSet;
+import net.sf.openrocket.rocketcomponent.RailButton;
 import net.sf.openrocket.rocketcomponent.ShockCord;
 import net.sf.openrocket.rocketcomponent.Streamer;
 import net.sf.openrocket.rocketcomponent.Transition;
 import net.sf.openrocket.rocketcomponent.TrapezoidFinSet;
 import net.sf.openrocket.rocketcomponent.TubeCoupler;
+import net.sf.openrocket.rocketcomponent.TubeFinSet;
 import net.sf.openrocket.startup.Application;
 
 public class ComponentIcons {
@@ -45,31 +50,27 @@ public class ComponentIcons {
 		load("nosecone", trans.get("ComponentIcons.Nosecone"), NoseCone.class);
 		// // Body tube
 		load("bodytube", trans.get("ComponentIcons.Bodytube"), BodyTube.class);
-		// // Transition
-		load("transition", trans.get("ComponentIcons.Transition"),
-				Transition.class);
-		// // Trapezoidal fin set
-		load("trapezoidfin", trans.get("ComponentIcons.Trapezoidalfinset"),
-				TrapezoidFinSet.class);
-		// // Elliptical fin set
-		load("ellipticalfin", trans.get("ComponentIcons.Ellipticalfinset"),
-				EllipticalFinSet.class);
-		// // Freeform fin set
-		load("freeformfin", trans.get("ComponentIcons.Freeformfinset"),
-				FreeformFinSet.class);
-		// // Launch lug
-		load("launchlug", trans.get("ComponentIcons.Launchlug"),
-				LaunchLug.class);
-		// // Inner tube
-		load("innertube", trans.get("ComponentIcons.Innertube"),
-				InnerTube.class);
-		// // Tube coupler
-		load("tubecoupler", trans.get("ComponentIcons.Tubecoupler"),
-				TubeCoupler.class);
-		// // Centering ring
-		load("centeringring", trans.get("ComponentIcons.Centeringring"),
-				CenteringRing.class);
-		// // Bulk head
+		//// Transition
+		load("transition", trans.get("ComponentIcons.Transition"), Transition.class);
+		//// Trapezoidal fin set
+		load("trapezoidfin", trans.get("ComponentIcons.Trapezoidalfinset"), TrapezoidFinSet.class);
+		//// Elliptical fin set
+		load("ellipticalfin", trans.get("ComponentIcons.Ellipticalfinset"), EllipticalFinSet.class);
+		//// Freeform fin set
+		load("freeformfin", trans.get("ComponentIcons.Freeformfinset"), FreeformFinSet.class);
+		//// Tube fin set
+		load("tubefin", trans.get("ComponentIcons.Tubefinset"), TubeFinSet.class);
+		//// Launch lug
+		load("launchlug", trans.get("ComponentIcons.Launchlug"), LaunchLug.class);
+		//// Rail Button
+		load("railbutton", trans.get("ComponentIcons.RailButton"), RailButton.class);
+		//// Inner tube
+		load("innertube", trans.get("ComponentIcons.Innertube"), InnerTube.class);
+		//// Tube coupler
+		load("tubecoupler", trans.get("ComponentIcons.Tubecoupler"), TubeCoupler.class);
+		//// Centering ring
+		load("centeringring", trans.get("ComponentIcons.Centeringring"), CenteringRing.class);
+		//// Bulk head
 		load("bulkhead", trans.get("ComponentIcons.Bulkhead"), Bulkhead.class);
 		// // Engine block
 		load("engineblock", trans.get("ComponentIcons.Engineblock"),
@@ -84,6 +85,13 @@ public class ComponentIcons {
 				ShockCord.class);
 		load("mass", trans.get("ComponentIcons.Masscomponent"),
 				MassComponent.class);
+		// // Component Assemblies
+		load("stage", trans.get("ComponentIcons.Stage"),
+				AxialStage.class);
+		load("boosters", trans.get("ComponentIcons.Boosters"),
+				ParallelStage.class);
+		load("pods", trans.get("ComponentIcons.Pods"),
+				PodSet.class);
 		// // Mass components
 		loadMassTypeIcon("mass", trans.get("ComponentIcons.Masscomponent"),
 				MassComponentType.MASSCOMPONENT);

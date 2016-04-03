@@ -11,8 +11,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +24,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -57,9 +56,9 @@ import javax.swing.tree.TreeSelectionModel;
 import net.miginfocom.swing.MigLayout;
 import net.sf.openrocket.document.OpenRocketDocument;
 import net.sf.openrocket.document.StorageOptions;
+import net.sf.openrocket.document.StorageOptions.FileType;
 import net.sf.openrocket.file.GeneralRocketSaver;
-import net.sf.openrocket.gui.ExportDecalDialog;
-import net.sf.openrocket.gui.StorageOptionChooser;
+import net.sf.openrocket.gui.components.StyledLabel;
 import net.sf.openrocket.gui.configdialog.ComponentConfigDialog;
 import net.sf.openrocket.gui.customexpression.CustomExpressionDialog;
 import net.sf.openrocket.gui.dialogs.AboutDialog;
@@ -81,7 +80,6 @@ import net.sf.openrocket.gui.util.FileHelper;
 import net.sf.openrocket.gui.util.GUIUtil;
 import net.sf.openrocket.gui.util.Icons;
 import net.sf.openrocket.gui.util.SaveFileWorker;
-import net.sf.openrocket.gui.util.SimpleFileFilter;
 import net.sf.openrocket.gui.util.SwingPreferences;
 import net.sf.openrocket.guice.ExampleDesignFileMenuFactory;
 import net.sf.openrocket.guice.GeneralOptimizationDialogFactory;
@@ -93,6 +91,7 @@ import net.sf.openrocket.rocketcomponent.ComponentChangeListener;
 import net.sf.openrocket.rocketcomponent.Rocket;
 import net.sf.openrocket.rocketcomponent.RocketComponent;
 import net.sf.openrocket.startup.Application;
+import net.sf.openrocket.startup.Preferences;
 import net.sf.openrocket.util.BugException;
 import net.sf.openrocket.util.MemoryManagement;
 import net.sf.openrocket.util.MemoryManagement.MemoryData;
@@ -106,12 +105,16 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
-public class BasicFrame extends JFrame implements PropertyChangeListener {
+
+public class BasicFrame extends JFrame {
+	private static final long serialVersionUID = 948877655223365313L;
+	
 	private static final Logger log = LoggerFactory.getLogger(BasicFrame.class);
 	
 	private static final GeneralRocketSaver ROCKET_SAVER = new GeneralRocketSaver();
 	
 	private static final Translator trans = Application.getTranslator();
+	private static final Preferences prefs = Application.getPreferences();
 	
 	private static final int SHORTCUT_KEY = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 	
@@ -137,8 +140,6 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 	 * Should be set to false on the first rocket modification.
 	 */
 	private boolean replaceable = false;
-	
-	
 	
 	private final OpenRocketDocument document;
 	private final Rocket rocket;
@@ -169,7 +170,7 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 		
 		this.document = document;
 		this.rocket = document.getRocket();
-		this.rocket.getDefaultConfiguration().setAllStages();
+		this.rocket.getSelectedConfiguration().setAllStages();
 		
 		// Create the component tree selection model that will be used
 		componentSelectionModel = new DefaultTreeSelectionModel();
@@ -427,7 +428,7 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 		item = new JMenuItem(trans.get("main.menu.file.open"), KeyEvent.VK_O);
 		item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, SHORTCUT_KEY));
 		//// Open a rocket design
-		item.getAccessibleContext().setAccessibleDescription(trans.get("BasicFrame.item.Openrocketdesign"));
+		item.getAccessibleContext().setAccessibleDescription(trans.get("main.menu.file.open.desc"));
 		item.setIcon(Icons.FILE_OPEN);
 		item.addActionListener(new ActionListener() {
 			@Override
@@ -440,13 +441,13 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 		
 		//// Open Recent...
 		item = mruFactory.create(trans.get("main.menu.file.openRecent"), this);
-		item.getAccessibleContext().setAccessibleDescription(trans.get("BasicFrame.item.Openrecentrocketdesign"));
+		item.getAccessibleContext().setAccessibleDescription(trans.get("main.menu.file.openRecent.desc"));
 		item.setIcon(Icons.FILE_OPEN);
 		menu.add(item);
 		
 		//// Open example...
 		item = exampleFactory.create(trans.get("main.menu.file.openExample"), this);
-		item.getAccessibleContext().setAccessibleDescription(trans.get("BasicFrame.item.Openexamplerocketdesign"));
+		item.getAccessibleContext().setAccessibleDescription(trans.get("main.menu.file.openExample.desc"));
 		item.setIcon(Icons.FILE_OPEN_EXAMPLE);
 		menu.add(item);
 		
@@ -456,7 +457,7 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 		item = new JMenuItem(trans.get("main.menu.file.save"), KeyEvent.VK_S);
 		item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, SHORTCUT_KEY));
 		//// Save the current rocket design
-		item.getAccessibleContext().setAccessibleDescription(trans.get("BasicFrame.item.SavecurRocketdesign"));
+		item.getAccessibleContext().setAccessibleDescription(trans.get("main.menu.file.save.desc"));
 		item.setIcon(Icons.FILE_SAVE);
 		item.addActionListener(new ActionListener() {
 			@Override
@@ -472,7 +473,7 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 		item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
 				SHORTCUT_KEY | ActionEvent.SHIFT_MASK));
 		//// Save the current rocket design to a new file
-		item.getAccessibleContext().setAccessibleDescription(trans.get("BasicFrame.item.SavecurRocketdesnewfile"));
+		item.getAccessibleContext().setAccessibleDescription(trans.get("main.menu.file.saveAs.desc"));
 		item.setIcon(Icons.FILE_SAVE_AS);
 		item.addActionListener(new ActionListener() {
 			@Override
@@ -483,6 +484,31 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 		});
 		menu.add(item);
 		
+		menu.addSeparator();
+		
+		//// Import Rocksim
+		item = new JMenuItem(trans.get("main.menu.file.import"));
+		item.getAccessibleContext().setAccessibleDescription(trans.get("main.menu.file.import.desc"));
+		item.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				log.info(Markers.USER_MARKER, "Import... selected");
+				importAction();
+			}
+		});
+		menu.add(item);
+		
+		//// Export Rocksim
+		item = new JMenuItem(trans.get("main.menu.file.export"));
+		item.getAccessibleContext().setAccessibleDescription(trans.get("main.menu.file.export.desc"));
+		item.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				log.info(Markers.USER_MARKER, "Export... selected");
+				exportAction();
+			}
+		});
+		menu.add(item);
 		
 		//// Export decal...
 		item = new JMenuItem(trans.get("main.menu.file.exportDecal"));
@@ -528,7 +554,7 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 		item = new JMenuItem(trans.get("main.menu.file.close"), KeyEvent.VK_C);
 		item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, SHORTCUT_KEY));
 		//// Close the current rocket design
-		item.getAccessibleContext().setAccessibleDescription(trans.get("BasicFrame.item.Closedesign"));
+		item.getAccessibleContext().setAccessibleDescription(trans.get("main.menu.file.close.desc"));
 		item.setIcon(Icons.FILE_CLOSE);
 		item.addActionListener(new ActionListener() {
 			@Override
@@ -545,7 +571,7 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 		item = new JMenuItem(trans.get("main.menu.file.quit"), KeyEvent.VK_Q);
 		item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, SHORTCUT_KEY));
 		//// Quit the program
-		item.getAccessibleContext().setAccessibleDescription(trans.get("BasicFrame.item.Quitprogram"));
+		item.getAccessibleContext().setAccessibleDescription(trans.get("main.menu.file.quit.desc"));
 		item.setIcon(Icons.FILE_QUIT);
 		item.addActionListener(new ActionListener() {
 			@Override
@@ -562,7 +588,7 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 		menu = new JMenu(trans.get("main.menu.edit"));
 		menu.setMnemonic(KeyEvent.VK_E);
 		//// Rocket editing
-		menu.getAccessibleContext().setAccessibleDescription(trans.get("BasicFrame.menu.Rocketedt"));
+		menu.getAccessibleContext().setAccessibleDescription(trans.get("main.menu.edit.desc"));
 		menubar.add(menu);
 		
 		
@@ -751,8 +777,9 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 		menu.add(item);
 		
 		//// Debug log
-		item = new JMenuItem(trans.get("main.menu.help.debugLog"));
+		item = new JMenuItem(trans.get("main.menu.help.debugLog"), KeyEvent.VK_D);
 		item.setIcon(Icons.HELP_DEBUG_LOG);
+		item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, SHORTCUT_KEY));
 		item.getAccessibleContext().setAccessibleDescription(trans.get("main.menu.help.debugLog.desc"));
 		item.addActionListener(new ActionListener() {
 			@Override
@@ -1000,8 +1027,7 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 		
 		chooser.addChoosableFileFilter(FileHelper.ALL_DESIGNS_FILTER);
 		chooser.addChoosableFileFilter(FileHelper.OPENROCKET_DESIGN_FILTER);
-		chooser.addChoosableFileFilter(FileHelper.ROCKSIM_DESIGN_FILTER);
-		chooser.setFileFilter(FileHelper.ALL_DESIGNS_FILTER);
+		chooser.setFileFilter(FileHelper.OPENROCKET_DESIGN_FILTER);
 		
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		chooser.setMultiSelectionEnabled(true);
@@ -1026,6 +1052,37 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 		}
 	}
 	
+	private void importAction() {
+		JFileChooser chooser = new JFileChooser();
+		
+		chooser.addChoosableFileFilter(FileHelper.ALL_DESIGNS_FILTER);
+		chooser.addChoosableFileFilter(FileHelper.ROCKSIM_DESIGN_FILTER);
+		chooser.setFileFilter(FileHelper.ROCKSIM_DESIGN_FILTER);
+		
+		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		chooser.setMultiSelectionEnabled(true);
+		chooser.setCurrentDirectory(((SwingPreferences) Application.getPreferences()).getDefaultDirectory());
+		int option = chooser.showOpenDialog(this);
+		if (option != JFileChooser.APPROVE_OPTION) {
+			log.info(Markers.USER_MARKER, "Decided not to open files, option=" + option);
+			return;
+		}
+		
+		((SwingPreferences) Application.getPreferences()).setDefaultDirectory(chooser.getCurrentDirectory());
+		
+		File[] files = chooser.getSelectedFiles();
+		log.info(Markers.USER_MARKER, "Opening files " + Arrays.toString(files));
+		
+		for (File file : files) {
+			log.info("Opening file: " + file);
+			if (basicFrameHelper.open(file, this)) {
+				MRUDesignFile opts = MRUDesignFile.getInstance();
+				opts.addFile(file.getAbsolutePath());
+			}
+		}
+	}
+	
+	
 	void closeIfReplaceable() {
 		// Close previous window if replacing
 		if (replaceable && document.isSaved()) {
@@ -1036,7 +1093,6 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 			log.info("Closing window because it is replaceable");
 			closeAction();
 		}
-		
 	}
 	
 	public boolean isReplaceable() {
@@ -1057,89 +1113,29 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 	 */
 	private boolean saveAction() {
 		File file = document.getFile();
-		if (file == null) {
+		if (file == null || document.getDefaultStorageOptions().getFileType().equals(FileType.ROCKSIM)) {
 			log.info("Document does not contain file, opening save as dialog instead");
 			return saveAsAction();
 		}
+		
 		log.info("Saving document to " + file);
 		
-		if (FileHelper.ROCKSIM_DESIGN_FILTER.accept(file)) {
-			return saveAsRocksim(file);
-		}
-		return saveAs(file);
+		return saveAsOpenRocket(file);
 	}
 	
-	private static String oldFileName = null;
-	
-	public void propertyChange(PropertyChangeEvent event) {
-		if (JFileChooser.SELECTED_FILE_CHANGED_PROPERTY == event.getPropertyName()) {
-			if (null != event.getOldValue()) {
-				BasicFrame.oldFileName = ((File) event.getOldValue()).getName();
-			}
-			return;
-		} else if (JFileChooser.FILE_FILTER_CHANGED_PROPERTY == event.getPropertyName()) {
-			JFileChooser chooser = (JFileChooser) event.getSource();
-			SimpleFileFilter filter = (SimpleFileFilter) (chooser.getFileFilter());
-			String desiredExtension = filter.getExtensions()[0];
-			
-			if (null == BasicFrame.oldFileName) {
-				return;
-			}
-			String thisFileName = BasicFrame.oldFileName;
-			
-			if (filter.accept(new File(thisFileName))) {
-				// nop 
-				return;
-			} else {
-				String[] splitResults = thisFileName.split("\\.");
-				if (0 < splitResults.length) {
-					thisFileName = splitResults[0];
-				}
-				chooser.setSelectedFile(new File(thisFileName + desiredExtension));
-				return;
-			}
-		}
-	}
 	
 	/**
-	 * "Save As" action.
-	 *
-	 * Never should a .rkt file contain an OpenRocket content, or an .ork file contain a Rocksim design.  Regardless of
-	 * what extension the user has chosen, it would violate the Principle of Least Astonishment to do otherwise
-	 * (and we want to make doing the wrong thing really hard to do).  So always force the appropriate extension.
-	 *
-	 * This can result in some odd looking filenames (MyDesign.rkt.ork, MyDesign.rkt.ork.rkt, etc.) if the user is
-	 * not paying attention, but the user can control that by modifying the filename in the dialog.
+	 * "Export" action.
 	 *
 	 * @return true if the file was saved, false otherwise
 	 */
-	private boolean saveAsAction() {
+	private boolean exportAction() {
 		File file = null;
 		
-		StorageOptionChooser storageChooser =
-				new StorageOptionChooser(document, document.getDefaultStorageOptions());
-		final JFileChooser chooser = new JFileChooser();
-		chooser.setAcceptAllFileFilterUsed(false);
-		chooser.addChoosableFileFilter(FileHelper.OPENROCKET_DESIGN_FILTER);
-		chooser.addChoosableFileFilter(FileHelper.ROCKSIM_DESIGN_FILTER);
-		chooser.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, this);
-		chooser.addPropertyChangeListener(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY, this);
-		chooser.addPropertyChangeListener(JFileChooser.SELECTED_FILES_CHANGED_PROPERTY, this);
-		
-		//Force the file filter to match the file extension that was opened.  Will default to OR if the file is null.
-		if (FileHelper.ROCKSIM_DESIGN_FILTER.accept(document.getFile())) {
-			chooser.setFileFilter(FileHelper.ROCKSIM_DESIGN_FILTER);
-		}
-		else {
-			chooser.setFileFilter(FileHelper.OPENROCKET_DESIGN_FILTER);
-		}
-		chooser.setCurrentDirectory(((SwingPreferences) Application.getPreferences()).getDefaultDirectory());
-		chooser.setAccessory(storageChooser);
-		if (document.getFile() != null) {
-			chooser.setSelectedFile(document.getFile());
-		}
+		final SaveAsFileChooser chooser = SaveAsFileChooser.build(document, FileType.ROCKSIM);
 		
 		int option = chooser.showSaveDialog(BasicFrame.this);
+		
 		if (option != JFileChooser.APPROVE_OPTION) {
 			log.info(Markers.USER_MARKER, "User decided not to save, option=" + option);
 			return false;
@@ -1152,20 +1148,12 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 		}
 		
 		((SwingPreferences) Application.getPreferences()).setDefaultDirectory(chooser.getCurrentDirectory());
-		storageChooser.storeOptions(document.getDefaultStorageOptions());
 		
-		if (chooser.getFileFilter().equals(FileHelper.ROCKSIM_DESIGN_FILTER)) {
+		file = FileHelper.forceExtension(file, "ork");
+		if (FileHelper.confirmWrite(file, this)) {
 			return saveAsRocksim(file);
 		}
-		else {
-			file = FileHelper.forceExtension(file, "ork");
-			boolean result = FileHelper.confirmWrite(file, this) && saveAs(file);
-			if (result) {
-				MRUDesignFile opts = MRUDesignFile.getInstance();
-				opts.addFile(file.getAbsolutePath());
-			}
-			return result;
-		}
+		return false;
 	}
 	
 	/**
@@ -1176,7 +1164,31 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 	 * @return true if the file was written
 	 */
 	private boolean saveAsRocksim(File file) {
-		file = FileHelper.forceExtension(file, "rkt");
+		if (prefs.getShowRockSimFormatWarning()) {
+			// Show Rocksim format warning
+			JPanel panel = new JPanel(new MigLayout());
+			panel.add(new StyledLabel(trans.get("SaveRktWarningDialog.txt1")), "wrap");
+			final JCheckBox check = new JCheckBox(trans.get("SaveRktWarningDialog.donotshow"));
+			check.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					prefs.setShowRockSimFormatWarning(!check.isSelected());
+				}
+			});
+			panel.add(check);
+			int sel = JOptionPane.showOptionDialog(null,
+					panel,
+					"", // title
+					JOptionPane.OK_CANCEL_OPTION,
+					JOptionPane.WARNING_MESSAGE,
+					null, // icon
+					null, // options
+					null // default option
+					);
+			if (sel == 1) {
+				return false;
+			}
+		}
 		if (!FileHelper.confirmWrite(file, this)) {
 			return false;
 		}
@@ -1193,15 +1205,50 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 	}
 	
 	/**
+	 * "Save As" action.
+	 *
+	 * @return true if the file was saved, false otherwise
+	 */
+	private boolean saveAsAction() {
+		File file = null;
+		
+		final SaveAsFileChooser chooser = SaveAsFileChooser.build(document, FileType.OPENROCKET);
+		
+		int option = chooser.showSaveDialog(BasicFrame.this);
+		
+		if (option != JFileChooser.APPROVE_OPTION) {
+			log.info(Markers.USER_MARKER, "User decided not to save, option=" + option);
+			return false;
+		}
+		
+		file = chooser.getSelectedFile();
+		if (file == null) {
+			log.info(Markers.USER_MARKER, "User did not select a file");
+			return false;
+		}
+		
+		((SwingPreferences) Application.getPreferences()).setDefaultDirectory(chooser.getCurrentDirectory());
+		chooser.storeOptions(document.getDefaultStorageOptions());
+		
+		file = FileHelper.forceExtension(file, "ork");
+		boolean result = FileHelper.confirmWrite(file, this) && saveAsOpenRocket(file);
+		if (result) {
+			MRUDesignFile opts = MRUDesignFile.getInstance();
+			opts.addFile(file.getAbsolutePath());
+		}
+		return result;
+	}
+	
+	/**
 	 * Perform the writing of the design to the given file in OpenRocket format.
 	 *
 	 * @param file  the chosen file
 	 *
 	 * @return true if the file was written
 	 */
-	private boolean saveAs(File file) {
+	private boolean saveAsOpenRocket(File file) {
+		file = FileHelper.forceExtension(file, "ork");
 		log.info("Saving document as " + file);
-		boolean saved = false;
 		
 		if (!StorageOptionChooser.verifyStorageOptions(document, this)) {
 			// User cancelled the dialog
@@ -1209,7 +1256,7 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 			return false;
 		}
 		
-		
+		document.getDefaultStorageOptions().setFileType(FileType.OPENROCKET);
 		SaveFileWorker worker = new SaveFileWorker(document, file, ROCKET_SAVER);
 		
 		if (!SwingWorkerDialog.runWorker(this, "Saving file",
@@ -1225,8 +1272,8 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 			worker.get();
 			document.setFile(file);
 			document.setSaved(true);
-			saved = true;
 			setTitle();
+			return true;
 		} catch (ExecutionException e) {
 			
 			Throwable cause = e.getCause();
@@ -1245,7 +1292,7 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 			throw new BugException("EDT was interrupted", e);
 		}
 		
-		return saved;
+		return false;
 	}
 	
 	
@@ -1297,10 +1344,7 @@ public class BasicFrame extends JFrame implements PropertyChangeListener {
 	
 	
 	public void printAction() {
-		Double rotation = rocketpanel.getFigure().getRotation();
-		if (rotation == null) {
-			rotation = 0d;
-		}
+		double rotation = rocketpanel.getFigure().getRotation();
 		new PrintDialog(this, document, rotation).setVisible(true);
 	}
 	
