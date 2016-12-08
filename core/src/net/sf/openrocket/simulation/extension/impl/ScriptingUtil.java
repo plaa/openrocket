@@ -62,8 +62,10 @@ public class ScriptingUtil {
 		List<String> langs = new ArrayList<String>();
 		ScriptEngineManager manager = new ScriptEngineManager();
 		for (ScriptEngineFactory factory : manager.getEngineFactories()) {
+			System.out.println("factory " + factory + " langs " + getLanguage(factory));
 			langs.add(getLanguage(factory));
 		}
+		System.out.println("return langs " + langs);
 		return langs;
 	}
 	

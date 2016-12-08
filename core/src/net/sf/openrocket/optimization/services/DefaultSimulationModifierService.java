@@ -12,12 +12,9 @@ import net.sf.openrocket.document.Simulation;
 import net.sf.openrocket.l10n.Translator;
 import net.sf.openrocket.optimization.general.OptimizationException;
 import net.sf.openrocket.optimization.rocketoptimization.SimulationModifier;
-import net.sf.openrocket.optimization.rocketoptimization.modifiers.FlightConfigurationModifier;
 import net.sf.openrocket.optimization.rocketoptimization.modifiers.GenericComponentModifier;
 import net.sf.openrocket.plugin.Plugin;
 import net.sf.openrocket.rocketcomponent.BodyTube;
-import net.sf.openrocket.rocketcomponent.DeploymentConfiguration;
-import net.sf.openrocket.rocketcomponent.DeploymentConfiguration.DeployEvent;
 import net.sf.openrocket.rocketcomponent.EllipticalFinSet;
 import net.sf.openrocket.rocketcomponent.FinSet;
 import net.sf.openrocket.rocketcomponent.FreeformFinSet;
@@ -27,7 +24,6 @@ import net.sf.openrocket.rocketcomponent.MassComponent;
 import net.sf.openrocket.rocketcomponent.MotorMount;
 import net.sf.openrocket.rocketcomponent.NoseCone;
 import net.sf.openrocket.rocketcomponent.Parachute;
-import net.sf.openrocket.rocketcomponent.RecoveryDevice;
 import net.sf.openrocket.rocketcomponent.Rocket;
 import net.sf.openrocket.rocketcomponent.RocketComponent;
 import net.sf.openrocket.rocketcomponent.Streamer;
@@ -191,21 +187,21 @@ public class DefaultSimulationModifierService implements SimulationModifierServi
 					setDefaultMinMax(mod, simulation);
 					modifiers.add(mod);
 					
-//	TODO: reimplement motor ignition optimization				
-//					mod = new FlightConfigurationModifier<MotorInstance>(
-//							trans.get("optimization.modifier.motormount.delay"),
-//							trans.get("optimization.modifier.motormount.delay.desc"),
-//							c, UnitGroup.UNITS_SHORT_TIME,
-//							1.0,
-//							c.getClass(),
-//							c.getID(),
-//							"IgnitionConfiguration",
-//							IgnitionConfiguration.class,
-//							"IgnitionDelay");
-//					
-//					mod.setMinValue(0);
-//					mod.setMaxValue(5);
-//					modifiers.add(mod);
+					//	TODO: reimplement motor ignition optimization				
+					//					mod = new FlightConfigurationModifier<MotorInstance>(
+					//							trans.get("optimization.modifier.motormount.delay"),
+					//							trans.get("optimization.modifier.motormount.delay.desc"),
+					//							c, UnitGroup.UNITS_SHORT_TIME,
+					//							1.0,
+					//							c.getClass(),
+					//							c.getID(),
+					//							"IgnitionConfiguration",
+					//							IgnitionConfiguration.class,
+					//							"IgnitionDelay");
+					//					
+					//					mod.setMinValue(0);
+					//					mod.setMaxValue(5);
+					//					modifiers.add(mod);
 				}
 			}
 			
@@ -252,48 +248,48 @@ public class DefaultSimulationModifierService implements SimulationModifierServi
 			}
 			
 			
-			// Recovery device deployment altitude and delay
-			if (c instanceof RecoveryDevice) {
-				RecoveryDevice device = (RecoveryDevice) c;
-				
-				SimulationModifier mod = new FlightConfigurationModifier<DeploymentConfiguration>(
-						trans.get("optimization.modifier.recoverydevice.deployDelay"),
-						trans.get("optimization.modifier.recoverydevice.deployDelay.desc"),
-						c,
-						UnitGroup.UNITS_SHORT_TIME,
-						1.0,
-						c.getClass(),
-						c.getID(),
-						"DeploymentConfiguration",
-						DeploymentConfiguration.class,
-						"DeployDelay");
-				
-				mod.setMinValue(0);
-				mod.setMaxValue(10);
-				modifiers.add(mod);
-				
-				mod = new FlightConfigurationModifier<DeploymentConfiguration>(
-						trans.get("optimization.modifier.recoverydevice.deployAltitude"),
-						trans.get("optimization.modifier.recoverydevice.deployAltitude.desc"),
-						c,
-						UnitGroup.UNITS_DISTANCE,
-						1.0,
-						c.getClass(),
-						c.getID(),
-						"DeploymentConfiguration",
-						DeploymentConfiguration.class,
-						"DeployAltitude") {
-					
-					@Override
-					public void initialize(Simulation simulation) throws OptimizationException {
-						DeploymentConfiguration config = getModifiedObject(simulation);
-						config.setDeployEvent(DeployEvent.APOGEE);
-					}
-					
-				};
-				setDefaultMinMax(mod, simulation);
-				modifiers.add(mod);
-			}
+			//			// Recovery device deployment altitude and delay
+			//			if (c instanceof RecoveryDevice) {
+			//				RecoveryDevice device = (RecoveryDevice) c;
+			//				
+			//				SimulationModifier mod = new FlightConfigurationModifier<DeploymentConfiguration>(
+			//						trans.get("optimization.modifier.recoverydevice.deployDelay"),
+			//						trans.get("optimization.modifier.recoverydevice.deployDelay.desc"),
+			//						c,
+			//						UnitGroup.UNITS_SHORT_TIME,
+			//						1.0,
+			//						c.getClass(),
+			//						c.getID(),
+			//						"DeploymentConfiguration",
+			//						DeploymentConfiguration.class,
+			//						"DeployDelay");
+			//				
+			//				mod.setMinValue(0);
+			//				mod.setMaxValue(10);
+			//				modifiers.add(mod);
+			//				
+			//				mod = new FlightConfigurationModifier<DeploymentConfiguration>(
+			//						trans.get("optimization.modifier.recoverydevice.deployAltitude"),
+			//						trans.get("optimization.modifier.recoverydevice.deployAltitude.desc"),
+			//						c,
+			//						UnitGroup.UNITS_DISTANCE,
+			//						1.0,
+			//						c.getClass(),
+			//						c.getID(),
+			//						"DeploymentConfiguration",
+			//						DeploymentConfiguration.class,
+			//						"DeployAltitude") {
+			//					
+			//					@Override
+			//					public void initialize(Simulation simulation) throws OptimizationException {
+			//						DeploymentConfiguration config = getModifiedObject(simulation);
+			//						config.setDeployEvent(DeployEvent.APOGEE);
+			//					}
+			//					
+			//				};
+			//				setDefaultMinMax(mod, simulation);
+			//				modifiers.add(mod);
+			//			}
 			
 			
 			// Conditional shape parameter of Transition
